@@ -7,7 +7,6 @@ import (
 	"favourites/utils"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -99,9 +98,6 @@ func (s *userService) GetByUsername(ctx context.Context, username string) (model
 }
 
 func (s *userService) Create(ctx context.Context, m *models.User) error {
-	if m.ID.IsZero() {
-		m.ID = primitive.NewObjectID()
-	}
 
 	pass, err := bcrypt.GenerateFromPassword([]byte(m.Password), bcrypt.DefaultCost)
 	if err != nil {

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -83,9 +82,6 @@ func (s *insightService) GetByID(ctx context.Context, id string) (models.Insight
 }
 
 func (s *insightService) Create(ctx context.Context, m *models.Insight) error {
-	if m.ID.IsZero() {
-		m.ID = primitive.NewObjectID()
-	}
 
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {

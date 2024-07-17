@@ -78,14 +78,18 @@ func (s *favouriteService) GetByID(ctx context.Context, id string) (models.Favou
 	if err != nil {
 		return f, err
 	}
+
 	err = s.C.FindOne(context.TODO(), filter).Decode(&f)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return f, errors.New(utils.ErrorNotFound)
 	}
+
 	f.EvaluateAssetType()
 	fmt.Println(f.GetAssetCollectionByType())
+
 	err = utils.GetDB().Collection(f.GetAssetCollectionByType()).
 		FindOne(nil, bson.D{{Key: "_id", Value: f.AssetId}}).Decode(f.Asset)
+
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return f, errors.New(utils.ErrorNotFound)
 	}
@@ -96,7 +100,6 @@ func (s *favouriteService) Create(ctx context.Context, m *models.Favourite) erro
 
 	m.FavouredOn = time.Now()
 
-	//TODO UPDATE THIS
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
 		return err

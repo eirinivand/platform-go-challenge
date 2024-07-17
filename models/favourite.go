@@ -11,12 +11,8 @@ type Favourite struct {
 	Description string             `json:"description"`
 	FavouredOn  time.Time          `json:"favoured_on"`
 	AssetType   string             `json:"asset_type"  validate:"required,oneof=Chart Insight Audience"`
-
-	//
-	AssetId primitive.ObjectID `json:"-"       validate:"required"`
-
-	// This is omitted for bson since no such element exists in DB
-	Asset AssetInterface `json:"asset,omitempty" bson:"-"`
+	AssetId     primitive.ObjectID `json:"asset_id"       validate:"required"`
+	Asset       AssetInterface     `json:"asset,omitempty" bson:"-"`
 }
 
 // Make sure these match the types of assets that exist
