@@ -2,10 +2,13 @@ package utils
 
 import (
 	"favourites/models"
-	"github.com/dgrijalva/jwt-go"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
+	"net/http"
 )
 
 func MatchID(id string) (bson.D, error) {
@@ -26,15 +29,15 @@ func CompareHashPassword(password, hash string) bool {
 }
 
 func GenerateHashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
 }
 
 func ParseToken(tokenString string) (claims *models.Claims, err error) {
 	token, err := jwt.ParseWithClaims(tokenString, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("my_secret_key"), nil
+		return []byte(JwtSecret), nil
 	})
-
+	fmt.Println(token)
 	if err != nil {
 		return nil, err
 	}
@@ -46,4 +49,17 @@ func ParseToken(tokenString string) (claims *models.Claims, err error) {
 	}
 
 	return claims, nil
+}
+func getCookieHandler(ctx *gin.Context) {
+	cookie, err := ctx.Cookie("user")
+	if err != nil {
+		ctx.String(http.StatusNotFound, "Cookie not found")
+		return
+	}
+	ctx.String(http.StatusOK, "Cookie value: %s", cookie)
+}
+
+func setCookieHandler(ctx *gin.Context) {
+	ctx.SetCookie("user", "", 3600, "/", "localhost", false, true)
+	ctx.String(http.StatusOK, "Cookie has been set")
 }

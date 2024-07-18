@@ -2,14 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"favourites/database"
 	"favourites/models"
 	"favourites/utils"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/golang-jwt/jwt/v5"
 	"io"
 	"net/http"
 	"time"
@@ -26,22 +24,26 @@ func NewUserHandler(service database.UserService) *UserHandler {
 func (h *UserHandler) GetAll(ctx *gin.Context) {
 	users, err := h.service.GetAll(nil)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, users)
+	ctx.JSON(http.StatusOK, gin.H{"success": "Found Users", "users": users})
 }
 
 func (h *UserHandler) GetByUsername(ctx *gin.Context) {
 	username, _ := ctx.Params.Get("username")
 	user, err := h.service.GetByUsername(ctx, username)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		if err.Error() == utils.ErrorNotFound {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "user does not exist"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(http.StatusOK, gin.H{"success": "Found User", "user": user})
 }
 
 func (h *UserHandler) Add(ctx *gin.Context) {
@@ -55,12 +57,12 @@ func (h *UserHandler) Add(ctx *gin.Context) {
 	err = json.Unmarshal([]byte(byteValue), &result)
 	if err != nil {
 		fmt.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	err = h.service.Create(ctx, result)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -76,33 +78,36 @@ func (h *UserHandler) AddAll(ctx *gin.Context) {
 	err = json.Unmarshal([]byte(byteValue), &result)
 	if err != nil {
 		fmt.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	err = h.service.CreateAll(ctx, result)
 	if err != nil {
 		fmt.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 	ctx.Status(http.StatusCreated)
 
 }
 
-var jwtKey = []byte(utils.JwtSecret)
-
 func (h *UserHandler) Login(ctx *gin.Context) {
 
-	var user models.User
+	var user *models.User
 
-	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	byteValue, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		fmt.Println(err)
 	}
+	err = json.Unmarshal(byteValue, &user)
 
-	username, _ := ctx.Params.Get("username")
-	existingUser, err := h.service.GetByUsername(ctx, username)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user does not exist"})
+	existingUser, err := h.service.GetByUsername(ctx, user.Username)
+	if err != nil {
+		if err.Error() == utils.ErrorNotFound {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "user does not exist"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	errHash := utils.CompareHashPassword(user.Password, existingUser.Password)
@@ -116,82 +121,65 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 
 	claims := &models.Claims{
 		Role: existingUser.Role,
-		StandardClaims: jwt.StandardClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   existingUser.Username,
-			ExpiresAt: expirationTime.Unix(),
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenString, err := token.SignedString(jwtKey)
-
+	tokenString, err := token.SignedString([]byte(utils.JwtSecret))
+	fmt.Println(tokenString)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.SetCookie("token", tokenString, int(expirationTime.Unix()), "/", "localhost", false, true)
-	ctx.JSON(http.StatusOK, gin.H{"success": "user logged in"})
+	ctx.SetCookie("token", tokenString, 1000000, "/", "localhost", false, true)
+	ctx.JSON(http.StatusOK, gin.H{"success": "user logged in", "token": tokenString})
 }
 
 func (h *UserHandler) SignUp(ctx *gin.Context) {
-	var user models.User
 
-	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	byteValue, err := io.ReadAll(ctx.Request.Body)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	var result *models.User
+	err = json.Unmarshal([]byte(byteValue), &result)
+	if err != nil {
+		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while creating user"})
 	}
 
-	username, _ := ctx.Params.Get("username")
-	user, err := h.service.GetByUsername(ctx, username)
-	if !errors.Is(err, mongo.ErrNoDocuments) {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user already exists"})
+	_, err = h.service.GetByUsername(ctx, result.Username)
+	if err != nil && err.Error() != utils.ErrorNotFound {
+		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	} else if err == nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "user already exists"})
 		return
 	}
 
 	var errHash error
-	user.Password, errHash = utils.GenerateHashPassword(user.Password)
+	result.Password, errHash = utils.GenerateHashPassword(result.Password)
 
 	if errHash != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate password hash"})
 		return
 	}
 
-	err = h.service.Create(ctx, &user)
+	err = h.service.Create(ctx, result)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate password hash"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "could not create user"})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"success": "user created"})
+	ctx.JSON(http.StatusOK, gin.H{"success": "user created", "user": result.Username})
 }
 func (h *UserHandler) LogOut(ctx *gin.Context) {
-
 	ctx.SetCookie("token", "", -1, "/", "localhost", false, true)
 	ctx.JSON(http.StatusOK, gin.H{"success": "user logged out"})
-}
-
-func (h *UserHandler) Home(ctx *gin.Context) {
-
-	cookie, err := ctx.Cookie("token")
-
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
-
-	claims, err := utils.ParseToken(cookie)
-
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
-
-	if claims.Role != "user" && claims.Role != "admin" {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"success": "favourites page", "role": claims.Role})
 }

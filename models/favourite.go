@@ -6,13 +6,14 @@ import (
 )
 
 type Favourite struct {
-	ID          primitive.ObjectID `json:"id"         bson:"_id,omitempty"`
+	ID          primitive.ObjectID `json:"id"             bson:"_id,omitempty"`
 	Title       string             `json:"title"`
 	Description string             `json:"description"`
 	FavouredOn  time.Time          `json:"favoured_on"`
 	AssetType   string             `json:"asset_type"  validate:"required,oneof=Chart Insight Audience"`
-	AssetId     primitive.ObjectID `json:"asset_id"       validate:"required"`
+	AssetId     primitive.ObjectID `json:"asset_id"    validate:"required"`
 	Asset       AssetInterface     `json:"asset,omitempty" bson:"-"`
+	Role        string             `json:"-"           validate:"required"`
 }
 
 // Make sure these match the types of assets that exist

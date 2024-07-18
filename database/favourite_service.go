@@ -7,6 +7,7 @@ import (
 	"favourites/utils"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
@@ -97,7 +98,9 @@ func (s *favouriteService) GetByID(ctx context.Context, id string) (models.Favou
 }
 
 func (s *favouriteService) Create(ctx context.Context, m *models.Favourite) error {
-
+	if m.ID.IsZero() {
+		m.ID = primitive.NewObjectID()
+	}
 	m.FavouredOn = time.Now()
 
 	_, err := s.C.InsertOne(ctx, m)

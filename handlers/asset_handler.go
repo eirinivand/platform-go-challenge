@@ -17,9 +17,9 @@ func NewAssetHandler(service database.AssetService) *AssetHandler {
 func (h *AssetHandler) GetAll(ctx *gin.Context) {
 	assets, err := h.service.GetAll(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, assets)
+	ctx.JSON(http.StatusOK, gin.H{"success": "Found Assets", "assets": assets})
 }

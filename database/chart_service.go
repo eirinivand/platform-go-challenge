@@ -6,6 +6,7 @@ import (
 	"favourites/models"
 	"favourites/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	// "go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -69,7 +70,9 @@ func (s *chartService) GetByID(ctx context.Context, id string) (models.Chart, er
 }
 
 func (s *chartService) Create(ctx context.Context, m *models.Chart) error {
-
+	if m.ID.IsZero() {
+		m.ID = primitive.NewObjectID()
+	}
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
 		return err

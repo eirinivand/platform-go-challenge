@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 type UserService interface {
@@ -20,6 +20,11 @@ type UserService interface {
 	Delete(ctx context.Context, id string) error
 	GetByUsername(ctx context.Context, username string) (models.User, error)
 }
+
+const (
+	ADMIN_ROLE = "admin"
+	USER_ROLE  = "user"
+)
 
 type userService struct {
 	C *mongo.Collection
@@ -99,33 +104,19 @@ func (s *userService) GetByUsername(ctx context.Context, username string) (model
 
 func (s *userService) Create(ctx context.Context, m *models.User) error {
 
-	pass, err := bcrypt.GenerateFromPassword([]byte(m.Password), bcrypt.DefaultCost)
+	m.Role = USER_ROLE + m.Username
+	m.CreatedAt = time.Now()
+	m.UpdatedAt = time.Now()
+
+	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
 		fmt.Println(err)
-		err := errors.New("password encryption  failed")
-
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return errors.New(utils.ErrorNotFound)
+		}
 		return err
 	}
 
-	m.Password = string(pass)
-
-	_, err = s.C.InsertOne(context.TODO(), m)
-
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	_, err = s.C.InsertOne(ctx, m)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	// The following doesn't work if you have the `bson:"_id` on models.User.ID field,
-	// therefore we manually generate a new ID (look above).
-	// res, err := ...InsertOne
-	// objectID := res.InsertedID.(primitive.ObjectID)
-	// m.ID = objectID
 	return nil
 }
 
@@ -133,6 +124,19 @@ func (s *userService) CreateAll(ctx context.Context, uAll []*models.User) error 
 
 	var allUsers []interface{}
 	for _, i := range uAll {
+		i.CreatedAt = time.Now()
+		i.UpdatedAt = time.Now()
+		pass, err := utils.GenerateHashPassword(i.Password)
+		if err != nil {
+			fmt.Println(err)
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return errors.New(utils.ErrorNotFound)
+			}
+			err := errors.New("password encryption  failed")
+			return err
+		}
+		i.Password = string(pass)
+		i.Role = USER_ROLE + i.Username
 		allUsers = append(allUsers, i)
 	}
 	_, err := s.C.InsertMany(context.TODO(), allUsers)

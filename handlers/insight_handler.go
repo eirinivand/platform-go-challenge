@@ -21,9 +21,8 @@ func NewInsightHandler(service database.InsightService) *InsightHandler {
 
 func (h *InsightHandler) GetAll(ctx *gin.Context) {
 	insights, err := h.service.GetAll(nil)
-	status := http.StatusOK
 	if err != nil {
-		status = http.StatusInternalServerError
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -32,7 +31,7 @@ func (h *InsightHandler) GetAll(ctx *gin.Context) {
 		insights = make([]models.Insight, 0)
 	}
 
-	ctx.JSON(status, insights)
+	ctx.JSON(http.StatusOK, insights)
 }
 
 func (h *InsightHandler) Get(ctx *gin.Context) {
@@ -43,7 +42,7 @@ func (h *InsightHandler) Get(ctx *gin.Context) {
 		if err.Error() == utils.ErrorNotFound {
 			ctx.Status(http.StatusNotFound)
 		} else {
-			ctx.JSON(http.StatusInternalServerError, err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 		return
 	}
@@ -61,12 +60,12 @@ func (h *InsightHandler) Add(ctx *gin.Context) {
 	err = json.Unmarshal([]byte(byteValue), &result)
 	if err != nil {
 		fmt.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	err = h.service.Create(ctx, result)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -83,13 +82,13 @@ func (h *InsightHandler) AddAll(ctx *gin.Context) {
 	err = json.Unmarshal([]byte(byteValue), &result)
 	if err != nil {
 		fmt.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	err = h.service.CreateAll(ctx, result)
 	if err != nil {
 		fmt.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 	ctx.Status(http.StatusCreated)
 }

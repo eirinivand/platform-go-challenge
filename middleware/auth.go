@@ -3,27 +3,28 @@ package middleware
 import (
 	"favourites/utils"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func IsAuthorized() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		cookie, err := c.Cookie("token")
+	return func(ctx *gin.Context) {
+		cookie, err := ctx.Cookie("token")
 
 		if err != nil {
-			c.JSON(401, gin.H{"error": "unauthorized"})
-			c.Abort()
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			ctx.Abort()
 			return
 		}
 
 		claims, err := utils.ParseToken(cookie)
 
 		if err != nil {
-			c.JSON(401, gin.H{"error": "unauthorized"})
-			c.Abort()
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			ctx.Abort()
 			return
 		}
 
-		c.Set("role", claims.Role)
-		c.Next()
+		ctx.Set("role", claims.Role)
+		ctx.Next()
 	}
 }

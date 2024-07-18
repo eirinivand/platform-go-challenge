@@ -14,12 +14,12 @@ type Audience struct {
 	Attributes   []Attribute        `json:"social_commonalities,omitempty"`
 }
 
-func (c *Audience) Description() string {
-	return c.Name
+func (ctx *Audience) Description() string {
+	return ctx.Name
 }
-func (c *Audience) GetId() primitive.ObjectID {
-	return c.ID
+func (ctx *Audience) GetId() primitive.ObjectID {
+	return ctx.ID
 }
-func (c *Audience) GetAssetType() AssetInterface {
+func (ctx *Audience) GetAssetType() AssetInterface {
 	return &Audience{}
 }

@@ -6,6 +6,7 @@ import (
 	"favourites/models"
 	"favourites/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	// "go.mongodb.org/mongo-driver/mongo/options" // TODO
 )
@@ -82,7 +83,9 @@ func (s *audienceService) GetByID(ctx context.Context, id string) (models.Audien
 }
 
 func (s *audienceService) Create(ctx context.Context, m *models.Audience) error {
-
+	if m.ID.IsZero() {
+		m.ID = primitive.NewObjectID()
+	}
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
 		return err

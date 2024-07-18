@@ -21,9 +21,9 @@ func NewFavouriteHandler(service database.FavouriteService) *FavouriteHandler {
 
 func (h *FavouriteHandler) GetAll(ctx *gin.Context) {
 	favourites, err := h.service.GetAll(ctx)
-	status := http.StatusOK
+
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -32,7 +32,7 @@ func (h *FavouriteHandler) GetAll(ctx *gin.Context) {
 		favourites = make([]models.Favourite, 0)
 	}
 
-	ctx.JSON(status, favourites)
+	ctx.JSON(http.StatusOK, favourites)
 }
 
 func (h *FavouriteHandler) Get(ctx *gin.Context) {
@@ -43,7 +43,7 @@ func (h *FavouriteHandler) Get(ctx *gin.Context) {
 		if err.Error() == utils.ErrorNotFound {
 			ctx.Status(http.StatusNotFound)
 		} else {
-			ctx.JSON(http.StatusInternalServerError, err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 		return
 	}
@@ -61,19 +61,16 @@ func (h *FavouriteHandler) Add(ctx *gin.Context) {
 	var result *models.Favourite
 	err = json.Unmarshal(byteValue, &result)
 
+	result.Role = ctx.GetString("role")
 	if err != nil {
 		fmt.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
-	}
-	if err != nil {
-		fmt.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	err = h.service.Create(ctx, result)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

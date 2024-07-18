@@ -11,12 +11,12 @@ type Chart struct {
 	Data  [][][]float64      `json:"data" validate:"required"`
 }
 
-func (c *Chart) Description() string {
-	return c.Title
+func (ctx *Chart) Description() string {
+	return ctx.Title
 }
-func (c *Chart) GetId() primitive.ObjectID {
-	return c.ID
+func (ctx *Chart) GetId() primitive.ObjectID {
+	return ctx.ID
 }
-func (c *Chart) GetAssetType() AssetInterface {
+func (ctx *Chart) GetAssetType() AssetInterface {
 	return &Chart{}
 }

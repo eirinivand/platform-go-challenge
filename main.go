@@ -26,6 +26,7 @@ import (
 	"favourites/database"
 	_ "favourites/docs"
 	"favourites/handlers"
+	"favourites/middleware"
 	"favourites/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -62,10 +63,14 @@ func setupRouter() *gin.Engine {
 		usersGroup := appGroup.Group("/users")
 		{
 			userHandler := handlers.NewUserHandler(userService)
-			usersGroup.GET("/:username", userHandler.GetByUsername)
+			usersGroup.POST("/login", userHandler.Login)
+			usersGroup.POST("/logout", userHandler.LogOut)
+			usersGroup.POST("/signup", userHandler.SignUp)
+			usersGroup.GET("/profile/:username", userHandler.GetByUsername)
 
 			favouriteGroup := usersGroup.Group("/favourites")
 			{
+				favouriteGroup.Use(middleware.IsAuthorized())
 				favouriteHandler := handlers.NewFavouriteHandler(favouriteService)
 				favouriteGroup.GET("/", favouriteHandler.GetAll)
 				favouriteGroup.GET("/:id", favouriteHandler.Get)
@@ -77,6 +82,7 @@ func setupRouter() *gin.Engine {
 
 		adminGroup := appGroup.Group("/admin")
 		{
+			adminGroup.Use(middleware.IsAuthorized())
 			userHandler := handlers.NewUserHandler(userService)
 			adminGroup.GET("/users", userHandler.GetAll)
 			adminGroup.POST("/add-users-bulk", userHandler.AddAll)
@@ -99,8 +105,8 @@ func setupRouter() *gin.Engine {
 	}
 
 	// Ping Health Check
-	r.GET("/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong")
+	r.GET("/ping", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{"success": "pong"})
 	})
 
 	return r
