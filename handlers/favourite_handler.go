@@ -3,12 +3,14 @@ package handlers
 import (
 	"encoding/json"
 	"favourites/database"
+	"favourites/middleware"
 	"favourites/models"
 	"favourites/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type FavouriteHandler struct {
@@ -20,8 +22,11 @@ func NewFavouriteHandler(service database.FavouriteService) *FavouriteHandler {
 }
 
 func (h *FavouriteHandler) GetAll(ctx *gin.Context) {
-	favourites, err := h.service.GetAll(ctx)
-
+	role := ctx.GetString("role")
+	if !strings.Contains(role, middleware.ROLE_SUFFIX) {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	}
+	favourites, err := h.service.GetAll(ctx, role)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -37,8 +42,9 @@ func (h *FavouriteHandler) GetAll(ctx *gin.Context) {
 
 func (h *FavouriteHandler) Get(ctx *gin.Context) {
 	id, _ := ctx.Params.Get("id")
+	role := ctx.GetString("role")
 
-	m, err := h.service.GetByID(ctx, id)
+	m, err := h.service.GetByID(ctx, id, role)
 	if err != nil {
 		if err.Error() == utils.ErrorNotFound {
 			ctx.Status(http.StatusNotFound)
@@ -60,7 +66,6 @@ func (h *FavouriteHandler) Add(ctx *gin.Context) {
 
 	var result *models.Favourite
 	err = json.Unmarshal(byteValue, &result)
-
 	result.Role = ctx.GetString("role")
 	if err != nil {
 		fmt.Println(err)
@@ -75,4 +80,22 @@ func (h *FavouriteHandler) Add(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusCreated)
+}
+
+func (h *FavouriteHandler) Remove(ctx *gin.Context) {
+	role := ctx.GetString("role")
+	favId := ctx.Query("id")
+
+	err := h.service.Delete(ctx, favId, role)
+
+	if err != nil {
+		if err.Error() == utils.ErrorNotFound {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "already deleted"})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }

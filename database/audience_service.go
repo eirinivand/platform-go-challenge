@@ -26,16 +26,7 @@ type audienceService struct {
 var _ AudienceService = (*audienceService)(nil)
 
 func NewAudienceService(collection *mongo.Collection) AudienceService {
-
-	//indexOpts := new(options.IndexOptions)
-	//indexOpts.SetName("audienceIndex").
-	//	SetUnique(true)
-	//
-	//collection.Indexes().CreateOne(context.Background(), mongo.IndexModel{
-	//	Keys:    []string{"_id", "name"},
-	//	Options: indexOpts,
-	//})
-
+	
 	return &audienceService{C: collection}
 }
 

@@ -66,7 +66,7 @@ func setupRouter() *gin.Engine {
 			usersGroup.POST("/login", userHandler.Login)
 			usersGroup.POST("/logout", userHandler.LogOut)
 			usersGroup.POST("/signup", userHandler.SignUp)
-			usersGroup.GET("/profile/:username", userHandler.GetByUsername)
+			usersGroup.GET("/:username", userHandler.GetByUsername)
 
 			favouriteGroup := usersGroup.Group("/favourites")
 			{
@@ -75,6 +75,7 @@ func setupRouter() *gin.Engine {
 				favouriteGroup.GET("/", favouriteHandler.GetAll)
 				favouriteGroup.GET("/:id", favouriteHandler.Get)
 				favouriteGroup.POST("/add", favouriteHandler.Add)
+				favouriteGroup.POST("/delete", favouriteHandler.Remove)
 
 			}
 
@@ -82,7 +83,7 @@ func setupRouter() *gin.Engine {
 
 		adminGroup := appGroup.Group("/admin")
 		{
-			adminGroup.Use(middleware.IsAuthorized())
+			adminGroup.Use(middleware.IsAdmin())
 			userHandler := handlers.NewUserHandler(userService)
 			adminGroup.GET("/users", userHandler.GetAll)
 			adminGroup.POST("/add-users-bulk", userHandler.AddAll)
@@ -99,6 +100,7 @@ func setupRouter() *gin.Engine {
 		{
 			insightHandler := handlers.NewInsightHandler(insightService)
 			insightGroup.GET("/", insightHandler.GetAll)
+			insightGroup.GET("/:id", insightHandler.Get)
 			insightGroup.POST("/add-bulk", insightHandler.AddAll)
 		}
 

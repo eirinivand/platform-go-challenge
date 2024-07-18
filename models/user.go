@@ -12,7 +12,7 @@ type User struct {
 	Password  string             `json:"password,omitempty"`
 	CreatedAt time.Time          `json:"created_at"`
 	UpdatedAt time.Time          `json:"updated_at"`
-	Role      string             `json:"-"`
+	Role      string             `json:"role,omitempty"`
 }
 
 type Claims struct {

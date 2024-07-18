@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"favourites/middleware"
 	"favourites/models"
 	"favourites/utils"
 	"fmt"
@@ -21,11 +22,6 @@ type UserService interface {
 	GetByUsername(ctx context.Context, username string) (models.User, error)
 }
 
-const (
-	ADMIN_ROLE = "admin"
-	USER_ROLE  = "user"
-)
-
 type userService struct {
 	C *mongo.Collection
 }
@@ -33,17 +29,6 @@ type userService struct {
 var _ UserService = (*userService)(nil)
 
 func NewUserService(collection *mongo.Collection) UserService {
-	// indexOpts := new(options.IndexOptions)
-	// indexOpts.SetName("userIndex").
-	// 	SetUnique(true).
-	// 	SetBackground(true).
-	// 	SetSparse(true)
-
-	// collection.Indexes().CreateOne(context.Background(), mongo.IndexModel{
-	// 	Keys:    []string{"_id", "name"},
-	// 	Options: indexOpts,
-	// })
-
 	return &userService{C: collection}
 }
 
@@ -104,7 +89,11 @@ func (s *userService) GetByUsername(ctx context.Context, username string) (model
 
 func (s *userService) Create(ctx context.Context, m *models.User) error {
 
-	m.Role = USER_ROLE + m.Username
+	// If no role has been passed to initialize user, assign plain User role
+	if m.Role == "" {
+		m.Role = middleware.USER_ROLE
+	}
+	m.Role = m.Role + middleware.ROLE_SUFFIX + m.Username
 	m.CreatedAt = time.Now()
 	m.UpdatedAt = time.Now()
 
@@ -135,8 +124,13 @@ func (s *userService) CreateAll(ctx context.Context, uAll []*models.User) error 
 			err := errors.New("password encryption  failed")
 			return err
 		}
-		i.Password = string(pass)
-		i.Role = USER_ROLE + i.Username
+		i.Password = pass
+
+		// If no role has been passed to initialize user, assign plain User role
+		if i.Role == "" {
+			i.Role = middleware.USER_ROLE
+		}
+		i.Role = i.Role + middleware.ROLE_SUFFIX + i.Username
 		allUsers = append(allUsers, i)
 	}
 	_, err := s.C.InsertMany(context.TODO(), allUsers)
@@ -156,24 +150,6 @@ func (s *userService) Update(ctx context.Context, id string, m models.User) (int
 	update := bson.D{
 		{Key: "$set", Value: m},
 	}
-	//elem := bson.D{}
-	//
-	//if m.Title != "" {
-	//	elem = append(elem, bson.E{Key: "name", Value: m.Title})
-	//}
-	//
-	//if m.Description != "" {
-	//	elem = append(elem, bson.E{Key: "description", Value: m.Description})
-	//}
-	//
-	//if m.Asset != nil {
-	//	elem = append(elem, bson.E{Key: "asset", Value: m.Asset})
-	//}
-	//
-	//update := bson.D{
-	//	{Key: "$set", Value: elem},
-	//}
-
 	cur, err := s.C.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

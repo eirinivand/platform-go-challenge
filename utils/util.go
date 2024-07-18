@@ -3,12 +3,10 @@ package utils
 import (
 	"favourites/models"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
 )
 
 func MatchID(id string) (bson.D, error) {
@@ -49,17 +47,4 @@ func ParseToken(tokenString string) (claims *models.Claims, err error) {
 	}
 
 	return claims, nil
-}
-func getCookieHandler(ctx *gin.Context) {
-	cookie, err := ctx.Cookie("user")
-	if err != nil {
-		ctx.String(http.StatusNotFound, "Cookie not found")
-		return
-	}
-	ctx.String(http.StatusOK, "Cookie value: %s", cookie)
-}
-
-func setCookieHandler(ctx *gin.Context) {
-	ctx.SetCookie("user", "", 3600, "/", "localhost", false, true)
-	ctx.String(http.StatusOK, "Cookie has been set")
 }

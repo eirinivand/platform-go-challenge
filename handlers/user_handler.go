@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"favourites/database"
+	"favourites/middleware"
 	"favourites/models"
 	"favourites/utils"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -136,7 +138,7 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	}
 
 	ctx.SetCookie("token", tokenString, 1000000, "/", "localhost", false, true)
-	ctx.JSON(http.StatusOK, gin.H{"success": "user logged in", "token": tokenString})
+	ctx.JSON(http.StatusOK, gin.H{"success": "user logged in"})
 }
 
 func (h *UserHandler) SignUp(ctx *gin.Context) {
@@ -182,4 +184,25 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 func (h *UserHandler) LogOut(ctx *gin.Context) {
 	ctx.SetCookie("token", "", -1, "/", "localhost", false, true)
 	ctx.JSON(http.StatusOK, gin.H{"success": "user logged out"})
+}
+
+func (h *UserHandler) GetByRole(ctx *gin.Context) {
+	role := ctx.GetString("role")
+	if !strings.Contains(role, middleware.ROLE_SUFFIX) {
+		fmt.Println(role)
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized role"})
+		return
+	}
+	username := strings.Split(role, middleware.ROLE_SUFFIX)[1]
+	user, err := h.service.GetByUsername(ctx, username)
+	if err != nil {
+		if err.Error() == utils.ErrorNotFound {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "user does not exist"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"success": "Found User", "user": user})
 }

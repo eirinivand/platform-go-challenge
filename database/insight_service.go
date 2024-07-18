@@ -28,16 +28,6 @@ type insightService struct {
 var _ InsightService = (*insightService)(nil)
 
 func NewInsightService(collection *mongo.Collection) InsightService {
-	// indexOpts := new(options.IndexOptions)
-	// indexOpts.SetName("insightIndex").
-	// 	SetUnique(true).
-	// 	SetBackground(true).
-	// 	SetSparse(true)
-
-	// collection.Indexes().CreateOne(context.Background(), mongo.IndexModel{
-	// 	Keys:    []string{"_id", "name"},
-	// 	Options: indexOpts,
-	// })
 
 	return &insightService{C: collection}
 }

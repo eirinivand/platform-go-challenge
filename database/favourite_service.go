@@ -13,11 +13,11 @@ import (
 )
 
 type FavouriteService interface {
-	GetAll(ctx context.Context) ([]models.Favourite, error)
-	GetByID(ctx context.Context, id string) (models.Favourite, error)
+	GetAll(ctx context.Context, role string) ([]models.Favourite, error)
+	GetByID(ctx context.Context, id string, role string) (models.Favourite, error)
 	Create(ctx context.Context, m *models.Favourite) error
 	Update(ctx context.Context, id string, m models.Favourite) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string, role string) error
 }
 
 type favouriteService struct {
@@ -27,22 +27,11 @@ type favouriteService struct {
 var _ FavouriteService = (*favouriteService)(nil)
 
 func NewFavouriteService(collection *mongo.Collection) FavouriteService {
-	// indexOpts := new(options.IndexOptions)
-	// indexOpts.SetName("favouriteIndex").
-	// 	SetUnique(true).
-	// 	SetBackground(true).
-	// 	SetSparse(true)
-
-	// collection.Indexes().CreateOne(context.Background(), mongo.IndexModel{
-	// 	Keys:    []string{"_id", "name"},
-	// 	Options: indexOpts,
-	// })
-
 	return &favouriteService{C: collection}
 }
 
-func (s *favouriteService) GetAll(ctx context.Context) ([]models.Favourite, error) {
-	cur, err := s.C.Find(ctx, bson.D{})
+func (s *favouriteService) GetAll(ctx context.Context, role string) ([]models.Favourite, error) {
+	cur, err := s.C.Find(ctx, bson.D{{"role", role}})
 	if err != nil {
 		panic(err)
 		return nil, err
@@ -65,20 +54,20 @@ func (s *favouriteService) GetAll(ctx context.Context) ([]models.Favourite, erro
 			return nil, err
 		}
 
-		// results = append(results, models.Favourite{ID: elem[0].Value.(primitive.ObjectID)})
-
 		results = append(results, elem)
 	}
 
 	return results, nil
 }
 
-func (s *favouriteService) GetByID(ctx context.Context, id string) (models.Favourite, error) {
+func (s *favouriteService) GetByID(ctx context.Context, id string, role string) (models.Favourite, error) {
 	var f models.Favourite
-	filter, err := utils.MatchID(id)
+	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return f, err
 	}
+
+	filter := bson.D{{"_id", objectID}, {"role", role}}
 
 	err = s.C.FindOne(context.TODO(), filter).Decode(&f)
 	if errors.Is(err, mongo.ErrNoDocuments) {
@@ -89,7 +78,7 @@ func (s *favouriteService) GetByID(ctx context.Context, id string) (models.Favou
 	fmt.Println(f.GetAssetCollectionByType())
 
 	err = utils.GetDB().Collection(f.GetAssetCollectionByType()).
-		FindOne(nil, bson.D{{Key: "_id", Value: f.AssetId}}).Decode(f.Asset)
+		FindOne(nil, bson.D{{"_id", f.AssetId}}).Decode(f.Asset)
 
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return f, errors.New(utils.ErrorNotFound)
@@ -120,23 +109,6 @@ func (s *favouriteService) Update(ctx context.Context, id string, m models.Favou
 	update := bson.D{
 		{Key: "$set", Value: m},
 	}
-	//elem := bson.D{}
-	//
-	//if m.Title != "" {
-	//	elem = append(elem, bson.E{Key: "name", Value: m.Title})
-	//}
-	//
-	//if m.Description != "" {
-	//	elem = append(elem, bson.E{Key: "description", Value: m.Description})
-	//}
-	//
-	//if m.Asset != nil {
-	//	elem = append(elem, bson.E{Key: "asset", Value: m.Asset})
-	//}
-	//
-	//update := bson.D{
-	//	{Key: "$set", Value: elem},
-	//}
 
 	_, err = s.C.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -149,18 +121,18 @@ func (s *favouriteService) Update(ctx context.Context, id string, m models.Favou
 	return nil
 }
 
-func (s *favouriteService) Delete(ctx context.Context, id string) error {
-	filter, err := utils.MatchID(id)
+func (s *favouriteService) Delete(ctx context.Context, id string, role string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
-	_, err = s.C.DeleteOne(ctx, filter)
+	filter := bson.D{{"_id", objectID}, {"role", role}}
+	result, err := s.C.DeleteOne(ctx, filter)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(utils.ErrorNotFound)
-		}
 		return err
 	}
-
+	if result.DeletedCount == 0 {
+		return errors.New(utils.ErrorNotFound)
+	}
 	return nil
 }
