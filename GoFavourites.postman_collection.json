@@ -333,6 +333,66 @@
 					"response": []
 				},
 				{
+					"name": "Chart by ID",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{domain}}/api/v1/charts/{{__chart_id}}",
+							"protocol": "http",
+							"host": [
+								"{{domain}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"charts",
+								"{{__chart_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "User by Username",
 					"event": [
 						{
@@ -458,19 +518,7 @@
 							],
 							"request": {
 								"auth": {
-									"type": "basic",
-									"basic": [
-										{
-											"key": "password",
-											"value": "{{password}}",
-											"type": "string"
-										},
-										{
-											"key": "username",
-											"value": "{{username}}",
-											"type": "string"
-										}
-									]
+									"type": "noauth"
 								},
 								"method": "POST",
 								"header": [],
@@ -692,16 +740,46 @@
 							],
 							"request": {
 								"auth": {
-									"type": "basic",
-									"basic": [
+									"type": "jwt",
+									"jwt": [
 										{
-											"key": "password",
-											"value": "{{password}}",
+											"key": "secret",
+											"value": "{{JWT_SECRET_KEY}}",
 											"type": "string"
 										},
 										{
-											"key": "username",
-											"value": "{{username}}",
+											"key": "isSecretBase64Encoded",
+											"value": false,
+											"type": "boolean"
+										},
+										{
+											"key": "payload",
+											"value": "{\n    \"role\" : \"{{__token_role}}\",\n    \"sub\": \"{{__token_sub}}\",\n    \"exp\": \"{{__token_exp}}\"\n}",
+											"type": "string"
+										},
+										{
+											"key": "algorithm",
+											"value": "HS256",
+											"type": "string"
+										},
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "headerPrefix",
+											"value": "Bearer",
+											"type": "string"
+										},
+										{
+											"key": "queryParamKey",
+											"value": "token",
+											"type": "string"
+										},
+										{
+											"key": "header",
+											"value": "{}",
 											"type": "string"
 										}
 									]
@@ -767,7 +845,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "[\n    {\n        \"text\": \"Donec diam neque, vestibulum eget, vulputate ut, ultrices vel, augue. Vestibulum ante itae nisi.\"\n    },\n    {\n        \"text\": \"Donec diam neque, vestibulum eget, vulputate ut, ultrices vel, augue. Vestibulum ante itae nisi.\"\n    }\n]",
+									"raw": "[\n    {\n        \"text\": \"Donec diam neque, vestibulum ddeget, vulputate ut, ultrices vel, augue. Vestibulum ante itae nisi.\"\n    },\n    {\n        \"text\": \"Donec diam neque, vestibulum eget, vulputddate ut, ultrices vel, augue. Vestibulum ante itae nisi.\"\n    }\n]",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -806,16 +884,46 @@
 							],
 							"request": {
 								"auth": {
-									"type": "basic",
-									"basic": [
+									"type": "jwt",
+									"jwt": [
 										{
-											"key": "password",
-											"value": "{{password}}",
+											"key": "secret",
+											"value": "{{JWT_SECRET_KEY}}",
 											"type": "string"
 										},
 										{
-											"key": "username",
-											"value": "{{username}}",
+											"key": "isSecretBase64Encoded",
+											"value": false,
+											"type": "boolean"
+										},
+										{
+											"key": "payload",
+											"value": "{\n    \"role\" : \"{{__token_role}}\",\n    \"sub\": \"{{__token_sub}}\",\n    \"exp\": \"{{__token_exp}}\"\n}",
+											"type": "string"
+										},
+										{
+											"key": "algorithm",
+											"value": "HS256",
+											"type": "string"
+										},
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "headerPrefix",
+											"value": "Bearer",
+											"type": "string"
+										},
+										{
+											"key": "queryParamKey",
+											"value": "token",
+											"type": "string"
+										},
+										{
+											"key": "header",
+											"value": "{}",
 											"type": "string"
 										}
 									]
@@ -877,19 +985,7 @@
 					],
 					"request": {
 						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "password",
-									"value": "{{password}}",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "{{username}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "POST",
 						"header": [],
@@ -1312,7 +1408,7 @@
 							"jwt": [
 								{
 									"key": "secret",
-									"value": "MY_SOOO_SECRET_KEY",
+									"value": "{{JWT_SECRET_KEY}}",
 									"type": "string"
 								},
 								{

@@ -20,6 +20,7 @@
 !docker-compose.yml
 !Dockerfile
 
+!swagger.json
 !GoFavourites.postman_collection.json
 !GoFavourites.postman_environment.json
 # !Makefile

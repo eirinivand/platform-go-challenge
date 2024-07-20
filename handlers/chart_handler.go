@@ -61,6 +61,8 @@ func (h *ChartHandler) Add(ctx *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
 	}
 
 	err = h.service.Create(ctx, result)
@@ -83,12 +85,16 @@ func (h *ChartHandler) AddAll(ctx *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
 	}
 
 	err = h.service.CreateAll(ctx, result)
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
 	}
 	ctx.Status(http.StatusCreated)
 }

@@ -1,34 +1,30 @@
 // Asset API.
 //
-// Documentation of our awesome API.
+// Documentation of an awesome API.
 //
-//	 Schemes: http
-//	 BasePath: /api/v1
-//	 Version: 1.0.0
-//	 Host: localhost:6060
+//	BasePath: /api/v1
+//	Version: 1.0.0
+//	Host: localhost:6060
 //
-//	 Consumes:
-//	 - application/json
+//	Consumes:
+//	- application/json
 //
-//	 Produces:
-//	 - application/json
+//	Produces:
+//	- application/json
 //
-//	 Security:
-//	 - jwt token
-//
-//	SecurityDefinitions:
-//	  JWT:
+//	Security:
+//	- jwt
 //
 // swagger:meta
 package main
 
 import (
 	"favourites/database"
-	_ "favourites/docs"
 	"favourites/handlers"
 	"favourites/middleware"
 	"favourites/utils"
 	"github.com/gin-gonic/gin"
+	_ "github.com/go-openapi/swag"
 	"net/http"
 )
 

@@ -18,6 +18,7 @@ func (h *AssetHandler) GetAll(ctx *gin.Context) {
 	assets, err := h.service.GetAll(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
 		return
 	}
 

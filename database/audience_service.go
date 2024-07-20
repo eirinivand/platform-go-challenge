@@ -6,7 +6,6 @@ import (
 	"favourites/models"
 	"favourites/utils"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
@@ -17,7 +16,7 @@ type AudienceService interface {
 	GetAll(ctx context.Context) ([]models.Audience, error)
 	GetByID(ctx context.Context, id string) (models.Audience, error)
 	Create(ctx context.Context, m *models.Audience) error
-	CreateAll(ctx *gin.Context, result []*models.Audience) error
+	CreateAll(ctx context.Context, result []*models.Audience) error
 	Update(ctx context.Context, id string, m models.Audience) error
 	Delete(ctx context.Context, id string) error
 }
@@ -84,7 +83,7 @@ func (s *audienceService) Create(ctx context.Context, m *models.Audience) error 
 	return nil
 }
 
-func (s *audienceService) CreateAll(ctx *gin.Context, audiences []*models.Audience) error {
+func (s *audienceService) CreateAll(ctx context.Context, audiences []*models.Audience) error {
 
 	var audiencesI []interface{}
 	for _, i := range audiences {
@@ -93,7 +92,7 @@ func (s *audienceService) CreateAll(ctx *gin.Context, audiences []*models.Audien
 
 		audiencesI = append(audiencesI, i)
 	}
-	_, err := s.C.InsertMany(context.TODO(), audiencesI)
+	_, err := s.C.InsertMany(ctx, audiencesI)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err

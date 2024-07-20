@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Chart Chart is one of the available assets
+// Chart is one of the available assets
 //
 // swagger:model Chart
 type Chart struct {

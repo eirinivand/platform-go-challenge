@@ -17,7 +17,7 @@ services:
       watch:
         - action: sync
           path: .
-          target: ./code
+          target: ./
     depends_on:
       - mongodb
 
@@ -25,9 +25,21 @@ services:
     image: mongo:latest
     container_name: mongodb
     restart: always
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME: user
-#      MONGO_INITDB_ROOT_PASSWORD: <admin-password>
-#      MONGO_INITDB_DATABASE: <database to create>
     ports:
       - '27017:27017'
+
+#  swagger:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile-swagger
+#    ports:
+#      - "6060:6060"
+#    tty: true
+#    restart: unless-stopped
+#    develop:
+#      watch:
+#        - action: sync
+#          path: .
+#          target: ./
+#    depends_on:
+#      - app

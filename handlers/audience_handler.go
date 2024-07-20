@@ -23,6 +23,7 @@ func (h *AudienceHandler) GetAll(ctx *gin.Context) {
 	audiences, err := h.service.GetAll(nil)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
 		return
 	}
 
@@ -61,11 +62,14 @@ func (h *AudienceHandler) Add(ctx *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
 	}
 
 	err = h.service.Create(ctx, result)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
 		return
 	}
 
@@ -77,18 +81,25 @@ func (h *AudienceHandler) AddAll(ctx *gin.Context) {
 	byteValue, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		fmt.Println(err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
 	}
 	var result []*models.Audience
 	err = json.Unmarshal([]byte(byteValue), &result)
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
 	}
 
 	err = h.service.CreateAll(ctx, result)
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
 	}
 	ctx.Status(http.StatusCreated)
 }

@@ -6,19 +6,19 @@ import (
 	"favourites/models"
 	"favourites/utils"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
+	// "go.mongodb.org/mongo-driver/mongo/options" // TODO
 )
 
 type InsightService interface {
 	GetAll(ctx context.Context) ([]models.Insight, error)
 	GetByID(ctx context.Context, id string) (models.Insight, error)
 	Create(ctx context.Context, m *models.Insight) error
+	CreateAll(ctx context.Context, result []*models.Insight) error
 	Update(ctx context.Context, id string, m models.Insight) error
 	Delete(ctx context.Context, id string) error
-	CreateAll(ctx *gin.Context, insights []*models.Insight) error
 }
 
 type insightService struct {
@@ -73,10 +73,8 @@ func (s *insightService) GetByID(ctx context.Context, id string) (models.Insight
 }
 
 func (s *insightService) Create(ctx context.Context, m *models.Insight) error {
-
 	m.CreatedAt = time.Now()
 	m.ModifiedAt = time.Now()
-
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
 		return err
@@ -85,7 +83,7 @@ func (s *insightService) Create(ctx context.Context, m *models.Insight) error {
 	return nil
 }
 
-func (s *insightService) CreateAll(ctx *gin.Context, insights []*models.Insight) error {
+func (s *insightService) CreateAll(ctx context.Context, insights []*models.Insight) error {
 
 	var insightsI []interface{}
 	for _, i := range insights {
@@ -94,13 +92,14 @@ func (s *insightService) CreateAll(ctx *gin.Context, insights []*models.Insight)
 
 		insightsI = append(insightsI, i)
 	}
-	_, err := s.C.InsertMany(context.TODO(), insightsI)
+	_, err := s.C.InsertMany(ctx, insightsI)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
 	return nil
 }
+
 func (s *insightService) Update(ctx context.Context, id string, m models.Insight) error {
 	filter, err := utils.MatchID(id)
 	if err != nil {

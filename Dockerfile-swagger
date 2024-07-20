@@ -17,17 +17,25 @@ COPY . .
 # Build the Go app
 RUN go build -o main .
 
-# Start a new stage from scratch
-FROM golang:1.23-rc
+FROM ghcr.io/go-swagger/go-swagger
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
-# Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/main .
+ENV GOBIN $GOPATH/bin
 
-# Expose port 8080 to the outside world
-EXPOSE 8080
+COPY --from=builder /app ./
 
-# Command to run the executable
-CMD ["./main"]
+ADD . .
+
+## Commands for swagger docs generation
+#  swagger generate spec -o ./swagger.json --scan-models
+#  swagger validate swagger.json
+#  swagger serve swagger.json -p=6060 --no-open
+
+#RUN  swagger generate spec -o swagger.json --scan-models
+
+ENTRYPOINT  swagger serve swagger.json -p 6060 --no-open
+
+# serving HTTP of 6060
+EXPOSE 6060

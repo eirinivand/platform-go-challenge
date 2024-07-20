@@ -33,6 +33,33 @@ func (h *UserHandler) GetAll(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"success": "Found Users", "users": users})
 }
 
+// swagger:operation GET /users/{username} User GetByUsername
+// # Get a user's details by username
+// ---
+// consumes:
+//   - application/json
+//
+// produces:
+//   - application/json
+//
+// parameters:
+//   - in: path
+//     name: username
+//     schema:
+//     type: string
+//     required: true
+//     description: The username of the user to get
+//
+// responses:
+//
+//		'200':
+//		  description: The requested user's details
+//		  schema:
+//	   	     "$ref": "#/definitions/User"
+//		'404':
+//		  description: The requested user was not found
+//		  schema:
+//			type: string
 func (h *UserHandler) GetByUsername(ctx *gin.Context) {
 	username, _ := ctx.Params.Get("username")
 	user, err := h.service.GetByUsername(ctx, username)
@@ -44,7 +71,7 @@ func (h *UserHandler) GetByUsername(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
+	user.Password = ""
 	ctx.JSON(http.StatusOK, gin.H{"success": "Found User", "user": user})
 }
 
@@ -60,6 +87,8 @@ func (h *UserHandler) Add(ctx *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
 	}
 
 	err = h.service.Create(ctx, result)
@@ -81,17 +110,48 @@ func (h *UserHandler) AddAll(ctx *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
 	}
 
 	err = h.service.CreateAll(ctx, result)
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
 	}
 	ctx.Status(http.StatusCreated)
 
 }
 
+// swagger:operation POST /users/login User Login
+//
+// # User Login
+//
+// ---
+// consumes:
+//   - application/json
+//
+// produces:
+//   - application/json
+//
+// responses:
+//
+//		'200':
+//		  description: Successful login
+//		  content:
+//		    type:
+//		      application/json:
+//	             schema:
+//	             type: string
+//		'401':
+//		  description: Unauthorized
+//		  content:
+//		    type:
+//		      application/json:
+//	             schema:
+//	             type: string
 func (h *UserHandler) Login(ctx *gin.Context) {
 
 	var user *models.User
@@ -109,6 +169,7 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Abort()
 		return
 	}
 
@@ -153,6 +214,8 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while creating user"})
+		ctx.Abort()
+		return
 	}
 
 	_, err = h.service.GetByUsername(ctx, result.Username)
