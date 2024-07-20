@@ -74,8 +74,8 @@ func (s *insightService) GetByID(ctx context.Context, id string) (models.Insight
 
 func (s *insightService) Create(ctx context.Context, m *models.Insight) error {
 
-	m.CreatedOn = time.Now()
-	m.ModifiedOn = time.Now()
+	m.CreatedAt = time.Now()
+	m.ModifiedAt = time.Now()
 
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
@@ -89,8 +89,8 @@ func (s *insightService) CreateAll(ctx *gin.Context, insights []*models.Insight)
 
 	var insightsI []interface{}
 	for _, i := range insights {
-		i.CreatedOn = time.Now()
-		i.ModifiedOn = time.Now()
+		i.CreatedAt = time.Now()
+		i.ModifiedAt = time.Now()
 
 		insightsI = append(insightsI, i)
 	}

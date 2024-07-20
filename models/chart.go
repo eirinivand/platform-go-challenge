@@ -5,14 +5,17 @@ import (
 	"time"
 )
 
+// Chart Chart is one of the available assets
+//
+// swagger:model Chart
 type Chart struct {
 	ID         primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Title      string             `json:"title" validate:"required"`
 	XAxis      Axis               `json:"x_axis" validate:"required"`
 	YAxis      Axis               `json:"y_axis" validate:"required"`
 	Points     []Point            `json:"points" validate:"required"`
-	CreatedOn  time.Time          `json:"created_on"  bson:"created_on"`
-	ModifiedOn time.Time          `json:"modified_on" bson:"modified_on"`
+	CreatedAt  time.Time          `json:"created_at"  bson:"created_at"`
+	ModifiedAt time.Time          `json:"modified_at" bson:"modified_at"`
 }
 
 func (c Chart) Description() string {

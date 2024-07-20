@@ -1,25 +1,25 @@
-// Product Api:
+// Asset API.
 //
-//	version: 0.1
-//	title: Go Challenge
+// Documentation of our awesome API.
 //
-// Schemes: http, https
-// Host:
-// BasePath: /api/v1
+//	 Schemes: http
+//	 BasePath: /api/v1
+//	 Version: 1.0.0
+//	 Host: localhost:6060
 //
-//	Consumes:
-//	- application/json
+//	 Consumes:
+//	 - application/json
 //
-// Produces:
-// - application/json
-// SecurityDefinitions:
+//	 Produces:
+//	 - application/json
 //
-//	Bearer:
-//	 type: apiKey
-//	 name: Authorization
-//	 in: header
+//	 Security:
+//	 - jwt token
 //
-// swagger:meta package main
+//	SecurityDefinitions:
+//	  JWT:
+//
+// swagger:meta
 package main
 
 import (

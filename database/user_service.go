@@ -95,7 +95,7 @@ func (s *userService) Create(ctx context.Context, m *models.User) error {
 	}
 	m.Role = m.Role + middleware.ROLE_SUFFIX + m.Username
 	m.CreatedAt = time.Now()
-	m.UpdatedAt = time.Now()
+	m.ModifiedAt = time.Now()
 
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
@@ -114,7 +114,7 @@ func (s *userService) CreateAll(ctx context.Context, uAll []*models.User) error 
 	var allUsers []interface{}
 	for _, i := range uAll {
 		i.CreatedAt = time.Now()
-		i.UpdatedAt = time.Now()
+		i.ModifiedAt = time.Now()
 		pass, err := utils.GenerateHashPassword(i.Password)
 		if err != nil {
 			fmt.Println(err)

@@ -105,7 +105,7 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	existingUser, err := h.service.GetByUsername(ctx, user.Username)
 	if err != nil {
 		if err.Error() == utils.ErrorNotFound {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "user does not exist"})
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "user does not exist"})
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

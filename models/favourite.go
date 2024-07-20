@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+// Favourite A Favourite asset of the user
+//
+// swagger:model Favourite
 type Favourite struct {
 	ID          primitive.ObjectID `json:"id"         bson:"_id,omitempty"`
 	Title       string             `json:"title"`
@@ -16,8 +19,8 @@ type Favourite struct {
 	AssetId     primitive.ObjectID `json:"asset_id"    bson:"asset_id" validate:"required"`
 	Asset       AssetInterface     `json:"asset"`
 	Role        string             `json:"-"           validate:"required"`
-	CreatedOn   time.Time          `json:"created_on"  bson:"created_on"`
-	ModifiedOn  time.Time          `json:"modified_on" bson:"modified_on"`
+	CreatedAt   time.Time          `json:"created_at"  bson:"created_at"`
+	ModifiedAt  time.Time          `json:"modified_at" bson:"modified_at"`
 }
 
 // Make sure these match the types of assets that exist
@@ -69,20 +72,23 @@ func (f *Favourite) UnmarshalBSON(data []byte) error {
 	}
 	fmt.Println(raw)
 	var ok bool
+
 	f.AssetType, ok = raw["asset_type"].(string)
 	f.ID, ok = raw["_id"].(primitive.ObjectID)
 	f.Title, ok = raw["title"].(string)
 	f.AssetId, ok = raw["asset_id"].(primitive.ObjectID)
 	f.Role, ok = raw["role"].(string)
-	fOn, ok := raw["created_on"].(primitive.DateTime)
-	f.CreatedOn = fOn.Time()
-	fOn, ok = raw["modified_on"].(primitive.DateTime)
-	f.ModifiedOn = fOn.Time()
+	fOn, ok := raw["created_at"].(primitive.DateTime)
+	f.CreatedAt = fOn.Time()
+	fOn, ok = raw["modified_at"].(primitive.DateTime)
+	f.ModifiedAt = fOn.Time()
 	f.Description, _ = raw["description"].(string)
-	assetBytes, err := bson.Marshal(raw["asset"])
 	if !ok {
 		return errors.New("invalid favourite asset")
 	}
+
+	assetBytes, err := bson.Marshal(raw["asset"])
+
 	if err != nil {
 		return err
 	}

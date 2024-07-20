@@ -1,15 +1,33 @@
 # Asset API
 
+This is just another API, or is it?
+
 ## Introduction
 
-This is just another API, or is it?
+This API is designed to allow users to interact with Asset data (stored in a MongoDB).
+
+### Roles
+
+The users in this concept have roles assigned to them.
+The roles determined which endpoints they can use from the API.
+
+There are two roles currently existing; `admin` and `user`.
+
+### Asset Types
+
+| Role  | Endpoints                    | Action               |
+|:------|:-----------------------------|:---------------------|
+| N/A   | api/v1/users/signup          | SignUp               | 
+| Admin | api/v1/admin/add-charts-bulk | Add a bulk of Charts |
+|       |                              |                      |
 
 ## Usage
 
 ### Prerequisites
 
-There are two ways to run this application; 
-1. Docker Compose (includes a MongoDB) 
+There are two ways to run this application;
+
+1. Docker Compose (includes a MongoDB)
 2. Go Run (along with a MongoDB).
 
 Specifically:
@@ -29,7 +47,7 @@ Specifically:
 2. A Postman installation (see [official instructions here](https://www.postman.com/downloads/))
     1. Import the [GoFavourites.postman_environment.json](GoFavourites.postman_environment.json) and then
     2. import [GoFavourites.postman_collection.json](GoFavourites.postman_collection.json)
-4. Then we can either:
+3. Then we can either:
     1. (Recommended) Run with Docker Compose
         1. Have Docker and Docker Compose installed
            (see [official instructions here](https://docs.docker.com/compose/install/)).
@@ -44,3 +62,7 @@ Specifically:
 ### Postman Collection Usage
 
 First we need a user, thus we should create one.
+
+## Other Info
+
+Based on [Instructions of the challenge](Instructions.md)

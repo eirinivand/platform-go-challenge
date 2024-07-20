@@ -73,8 +73,8 @@ func (s *chartService) GetByID(ctx context.Context, id string) (models.Chart, er
 
 func (s *chartService) Create(ctx context.Context, m *models.Chart) error {
 
-	m.CreatedOn = time.Now()
-	m.ModifiedOn = time.Now()
+	m.CreatedAt = time.Now()
+	m.ModifiedAt = time.Now()
 
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
@@ -88,8 +88,8 @@ func (s *chartService) CreateAll(ctx context.Context, charts []*models.Chart) er
 
 	var chartsI []interface{}
 	for _, i := range charts {
-		i.CreatedOn = time.Now()
-		i.ModifiedOn = time.Now()
+		i.CreatedAt = time.Now()
+		i.ModifiedAt = time.Now()
 
 		chartsI = append(chartsI, i)
 	}

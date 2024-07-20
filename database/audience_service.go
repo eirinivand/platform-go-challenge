@@ -74,8 +74,8 @@ func (s *audienceService) GetByID(ctx context.Context, id string) (models.Audien
 }
 
 func (s *audienceService) Create(ctx context.Context, m *models.Audience) error {
-	m.CreatedOn = time.Now()
-	m.ModifiedOn = time.Now()
+	m.CreatedAt = time.Now()
+	m.ModifiedAt = time.Now()
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
 		return err
@@ -88,8 +88,8 @@ func (s *audienceService) CreateAll(ctx *gin.Context, audiences []*models.Audien
 
 	var audiencesI []interface{}
 	for _, i := range audiences {
-		i.CreatedOn = time.Now()
-		i.ModifiedOn = time.Now()
+		i.CreatedAt = time.Now()
+		i.ModifiedAt = time.Now()
 
 		audiencesI = append(audiencesI, i)
 	}

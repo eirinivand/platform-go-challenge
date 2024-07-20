@@ -6,10 +6,10 @@ import (
 )
 
 type Insight struct {
-	ID         primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	ID         primitive.ObjectID `json:"id" bson:"_id"`
 	Text       string             `json:"text"` // TODO: check possible length for string. Might need to change.
-	CreatedOn  time.Time          `json:"created_on"`
-	ModifiedOn time.Time          `json:"modified_on"`
+	CreatedAt  time.Time          `json:"created_at" bson:"created_at"`
+	ModifiedAt time.Time          `json:"modified_at" bson:"modified_at"`
 }
 
 func (i Insight) Description() string {

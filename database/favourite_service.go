@@ -58,8 +58,8 @@ func (s *favouriteService) GetAll(ctx context.Context, role string) ([]models.Fa
 			{"asset_type", 1},
 			{"asset_id", 1},
 			{"role", 1},
-			{"created_on", 1},
-			{"modified_on", 1},
+			{"created_at", 1},
+			{"modified_at", 1},
 			{"asset",
 				bson.D{{"$cond",
 					bson.D{{"if",
@@ -72,7 +72,7 @@ func (s *favouriteService) GetAll(ctx context.Context, role string) ([]models.Fa
 								{"then", bson.D{{"$first", "$chart"}}},
 								{"else", bson.D{{"$first", "$audience"}}},
 							}}}}}}}}}}},
-		bson.D{{"$sort", bson.D{{"created_on", -1}}}}})
+		bson.D{{"$sort", bson.D{{"created_at", -1}}}}})
 	if err != nil {
 		return nil, err
 	}
@@ -125,8 +125,8 @@ func (s *favouriteService) GetByID(ctx context.Context, id string, role string) 
 }
 
 func (s *favouriteService) Create(ctx context.Context, m *models.Favourite) error {
-	m.CreatedOn = time.Now()
-	m.ModifiedOn = time.Now()
+	m.CreatedAt = time.Now()
+	m.ModifiedAt = time.Now()
 
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
@@ -141,7 +141,7 @@ func (s *favouriteService) Update(ctx context.Context, id string, m models.Favou
 	if err != nil {
 		return err
 	}
-	m.ModifiedOn = time.Now()
+	m.ModifiedAt = time.Now()
 
 	update := bson.D{
 		{Key: "$set", Value: m},
