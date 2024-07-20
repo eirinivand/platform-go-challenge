@@ -3,8 +3,9 @@ package models
 type Gender string
 
 const (
-	FEMALE Gender = "female"
-	MALE   Gender = "male"
+	FEMALE Gender = "Female"
+	MALE   Gender = "Male"
+	OTHER  Gender = "Other"
 )
 
 type AttrType string

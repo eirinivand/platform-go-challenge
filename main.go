@@ -104,6 +104,14 @@ func setupRouter() *gin.Engine {
 			insightGroup.POST("/add-bulk", insightHandler.AddAll)
 		}
 
+		audienceGroup := appGroup.Group("/audiences")
+		{
+			audienceHandler := handlers.NewAudienceHandler(audienceService)
+			audienceGroup.GET("/", audienceHandler.GetAll)
+			audienceGroup.GET("/:id", audienceHandler.Get)
+			audienceGroup.POST("/add-bulk", audienceHandler.AddAll)
+		}
+
 	}
 
 	// Ping Health Check

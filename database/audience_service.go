@@ -5,6 +5,8 @@ import (
 	"errors"
 	"favourites/models"
 	"favourites/utils"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -17,6 +19,7 @@ type AudienceService interface {
 	Create(ctx context.Context, m *models.Audience) error
 	Update(ctx context.Context, id string, m models.Audience) error
 	Delete(ctx context.Context, id string) error
+	CreateAll(ctx *gin.Context, result []*models.Audience) error
 }
 
 type audienceService struct {
@@ -26,14 +29,11 @@ type audienceService struct {
 var _ AudienceService = (*audienceService)(nil)
 
 func NewAudienceService(collection *mongo.Collection) AudienceService {
-	
+
 	return &audienceService{C: collection}
 }
 
 func (s *audienceService) GetAll(ctx context.Context) ([]models.Audience, error) {
-	// Note:
-	// The mongodb's go-driver's docs says that you can pass `nil` to "find all" but this gives NilDocument error,
-	// probably it's a bug or a documentation's mistake, you have to pass `bson.D{}` instead.
 	cur, err := s.C.Find(ctx, bson.D{})
 	if err != nil {
 		return nil, err
@@ -82,14 +82,22 @@ func (s *audienceService) Create(ctx context.Context, m *models.Audience) error 
 		return err
 	}
 
-	// The following doesn't work if you have the `bson:"_id` on models.AudienceID field,
-	// therefore we manually generate a new ID (look above).
-	// res, err := ...InsertOne
-	// objectID := res.InsertedID.(primitive.ObjectID)
-	// m.ID = objectID
 	return nil
 }
 
+func (s *audienceService) CreateAll(ctx *gin.Context, audiences []*models.Audience) error {
+
+	var audiencesI []interface{}
+	for _, i := range audiences {
+		audiencesI = append(audiencesI, i)
+	}
+	_, err := s.C.InsertMany(context.TODO(), audiencesI)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	return nil
+}
 func (s *audienceService) Update(ctx context.Context, id string, m models.Audience) error {
 	filter, err := utils.MatchID(id)
 	if err != nil {

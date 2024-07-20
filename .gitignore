@@ -20,6 +20,8 @@
 !docker-compose.yml
 !Dockerfile
 
+!GoFavourites.postman_collection.json
+!GoFavourites.postman_environment.json
 # !Makefile
 
 # ...even if they are in subdirectories

@@ -31,9 +31,47 @@ func NewFavouriteService(collection *mongo.Collection) FavouriteService {
 }
 
 func (s *favouriteService) GetAll(ctx context.Context, role string) ([]models.Favourite, error) {
-	cur, err := s.C.Find(ctx, bson.D{{"role", role}})
+	cur, err := s.C.Aggregate(ctx, bson.A{
+		bson.D{{"$match", bson.D{{"role", role}}}},
+		bson.D{{"$lookup", bson.D{
+			{"from", "insights"},
+			{"localField", "assetid"},
+			{"foreignField", "_id"},
+			{"as", "insight"},
+		}}},
+		bson.D{{"$lookup", bson.D{
+			{"from", "audiences"},
+			{"localField", "assetid"},
+			{"foreignField", "_id"},
+			{"as", "audience"},
+		}}},
+		bson.D{{"$lookup", bson.D{
+			{"from", "charts"},
+			{"localField", "assetid"},
+			{"foreignField", "_id"},
+			{"as", "chart"},
+		}}},
+		bson.D{{"$project", bson.D{
+			{"_id", 1},
+			{"title", 1},
+			{"description", 1},
+			{"favouredon", 1},
+			{"assettype", 1},
+			{"assetid", 1},
+			{"role", 1},
+			{"asset",
+				bson.D{{"$cond",
+					bson.D{{"if",
+						bson.D{{"$ne", bson.A{"$insight", bson.A{}}}}},
+						{"then", bson.D{{"$first", "$insight"}}},
+						{"else", bson.D{
+							{"$cond", bson.D{
+								{"if",
+									bson.D{{"$ne", bson.A{"$chart", bson.A{}}}}},
+								{"then", bson.D{{"$first", "$chart"}}},
+								{"else", bson.D{{"$first", "$audience"}}},
+							}}}}}}}}}}}})
 	if err != nil {
-		panic(err)
 		return nil, err
 	}
 	defer cur.Close(ctx)
@@ -42,7 +80,6 @@ func (s *favouriteService) GetAll(ctx context.Context, role string) ([]models.Fa
 
 	for cur.Next(ctx) {
 		if err = cur.Err(); err != nil {
-			panic(err)
 			return nil, err
 		}
 
@@ -50,7 +87,6 @@ func (s *favouriteService) GetAll(ctx context.Context, role string) ([]models.Fa
 		var elem models.Favourite
 		err = cur.Decode(&elem)
 		if err != nil {
-			panic(err)
 			return nil, err
 		}
 

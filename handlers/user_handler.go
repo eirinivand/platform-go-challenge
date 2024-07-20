@@ -119,7 +119,7 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := time.Now().Add(10 * time.Minute)
 
 	claims := &models.Claims{
 		Role: existingUser.Role,

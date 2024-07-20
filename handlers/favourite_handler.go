@@ -33,7 +33,6 @@ func (h *FavouriteHandler) GetAll(ctx *gin.Context) {
 	}
 
 	if favourites == nil {
-		// will return "null" if empty, with this "trick" we return "[]" json.
 		favourites = make([]models.Favourite, 0)
 	}
 

@@ -4,26 +4,43 @@
 
 This is just another API, or is it?
 
+## Usage
 
+### Prerequisites
 
-## Challenge
+There are two ways to run this application; 
+1. Docker Compose (includes a MongoDB) 
+2. Go Run (along with a MongoDB).
 
-Let's say that in GWI platform all of our users have access to a huge list of assets. We want our users to have a peronal list of favourites, meaning assets that favourite or “star” so that they have them in their frontpage dashboard for quick access. An asset can be one the following
-* Chart (that has a small title, axes titles and data)
-* Insight (a small piece of text that provides some insight into a topic, e.g. "40% of millenials spend more than 3hours on social media daily")
-* Audience (which is a series of characteristics, for that exercise lets focus on gender (Male, Female), birth country, age groups, hours spent daily on social media, number of purchases last month)
-e.g. Males from 24-35 that spent more than 3 hours on social media daily.
+Specifically:
 
-Build a web server which has some endpoint to receive a user id and return a list of all the user’s favourites. Also we want endpoints that would add an asset to favourites, remove it, or edit its description. Assets obviously can share some common attributes (like their description) but they also have completely different structure and data. It’s up to you to decide the structure and we are not looking for something overly complex here (especially for the cases of audiences). There is no need to have/deploy/create an actual database although we would like to discuss about storage options and data representations.
+1. For both approaches we need an `.env` file in the root directory of the project
+   (same level with this `README.md` and `main.go` file). Please don't commit this file.
+    ```ini
+    MONGODB=mongodb://localhost:27017
+    DB_NAME=favourites
+    JWT_SECRET_KEY=SOOOOOO_SECRET_KEY
+   ```
+   where:
+    * `MONGODB` is the URI of the MongoDB
+    * `DB_NAME` is the name of the database to be used by the application
+    * `JWT_SECRET_KEY` is the Secret Key used to sign the Json Web Token
+      used during authentication and authorization
+2. A Postman installation (see [official instructions here](https://www.postman.com/downloads/))
+    1. Import the [GoFavourites.postman_environment.json](GoFavourites.postman_environment.json) and then
+    2. import [GoFavourites.postman_collection.json](GoFavourites.postman_collection.json)
+4. Then we can either:
+    1. (Recommended) Run with Docker Compose
+        1. Have Docker and Docker Compose installed
+           (see [official instructions here](https://docs.docker.com/compose/install/)).
+    2. Run using Go Run for which we need to
+        1. have set `GOROOT`, `GOPATH`
+        2. Have a working MongoDB running (and the URI in `.env` file)
+        3. Then open a terminal, navigate in this directory
+        4. Run `go run main.go`
 
-Note that users have no limit on how many assets they want on their favourites so your service will need to provide a reasonable response time.
+## Documentation
 
-A working server application with functional API is required, along with a clear readme.md. Useful and passing tests would be also be viewed favourably
+### Postman Collection Usage
 
-It is appreciated, though not required, if a Dockerfile is included.
-
-## Submission
-
-Just create a fork from the current repo and send it to us!
-
-Good luck, potential colleague!
+First we need a user, thus we should create one.

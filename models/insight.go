@@ -9,12 +9,12 @@ type Insight struct {
 	Text string             `json:"text"` // TODO: check possible length for string. Might need to change.
 }
 
-func (ctx *Insight) Description() string {
-	return ctx.Text
+func (i Insight) Description() string {
+	return i.Text
 }
-func (ctx *Insight) GetId() primitive.ObjectID {
-	return ctx.ID
+func (i Insight) GetId() primitive.ObjectID {
+	return i.ID
 }
-func (ctx *Insight) GetAssetType() AssetInterface {
-	return &Audience{}
+func (i Insight) GetAssetType() AssetInterface {
+	return i
 }

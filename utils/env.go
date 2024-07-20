@@ -8,23 +8,19 @@ import (
 )
 
 var (
-	// Port is the PORT environment variable or 8080 if missing.
-	// Used to open the tcp listener for our web server.
-	Port string
 	// MongoDB is the MONGODB environment variable or mongodb://localhost:27017 if missing.
 	// Used to connect to the mongodb.
-	MongoDB   string
+	MongoDB string
+
 	DbName    string
 	JwtSecret string
 )
 
 func parse() {
-	Port = getDefault("PORT", "8080")
 	MongoDB = getDefault("MONGODB", "mongodb://mongodb:27017")
 	DbName = getDefault("DB_NAME", "favourites")
 	JwtSecret = getDefault("JWT_SECRET_KEY", "")
 
-	log.Printf("• Port=%s\n", Port)
 	log.Printf("• MongoDB=%s\n", MongoDB)
 	log.Printf("• DbName=%s\n", DbName)
 }
