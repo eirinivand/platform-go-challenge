@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 type InsightService interface {
@@ -73,19 +73,15 @@ func (s *insightService) GetByID(ctx context.Context, id string) (models.Insight
 }
 
 func (s *insightService) Create(ctx context.Context, m *models.Insight) error {
-	if m.ID.IsZero() {
-		m.ID = primitive.NewObjectID()
-	}
+
+	m.CreatedOn = time.Now()
+	m.ModifiedOn = time.Now()
+
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
 		return err
 	}
 
-	// The following doesn't work if you have the `bson:"_id` on models.Insight.ID field,
-	// therefore we manually generate a new ID (look above).
-	// res, err := ...InsertOne
-	// objectID := res.InsertedID.(primitive.ObjectID)
-	// m.ID = objectID
 	return nil
 }
 
@@ -93,6 +89,9 @@ func (s *insightService) CreateAll(ctx *gin.Context, insights []*models.Insight)
 
 	var insightsI []interface{}
 	for _, i := range insights {
+		i.CreatedOn = time.Now()
+		i.ModifiedOn = time.Now()
+
 		insightsI = append(insightsI, i)
 	}
 	_, err := s.C.InsertMany(context.TODO(), insightsI)

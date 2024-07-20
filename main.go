@@ -76,7 +76,6 @@ func setupRouter() *gin.Engine {
 				favouriteGroup.GET("/:id", favouriteHandler.Get)
 				favouriteGroup.POST("/add", favouriteHandler.Add)
 				favouriteGroup.POST("/delete", favouriteHandler.Remove)
-
 			}
 
 		}
@@ -87,7 +86,9 @@ func setupRouter() *gin.Engine {
 			userHandler := handlers.NewUserHandler(userService)
 			adminGroup.GET("/users", userHandler.GetAll)
 			adminGroup.POST("/add-users-bulk", userHandler.AddAll)
-
+			adminGroup.POST("/add-charts-bulk", handlers.NewChartHandler(chartService).AddAll)
+			adminGroup.POST("/add-insights-bulk", handlers.NewInsightHandler(insightService).AddAll)
+			adminGroup.POST("/add-audiences-bulk", handlers.NewAudienceHandler(audienceService).AddAll)
 		}
 
 		assetGroup := appGroup.Group("/assets")
@@ -101,7 +102,6 @@ func setupRouter() *gin.Engine {
 			insightHandler := handlers.NewInsightHandler(insightService)
 			insightGroup.GET("/", insightHandler.GetAll)
 			insightGroup.GET("/:id", insightHandler.Get)
-			insightGroup.POST("/add-bulk", insightHandler.AddAll)
 		}
 
 		audienceGroup := appGroup.Group("/audiences")
@@ -109,7 +109,13 @@ func setupRouter() *gin.Engine {
 			audienceHandler := handlers.NewAudienceHandler(audienceService)
 			audienceGroup.GET("/", audienceHandler.GetAll)
 			audienceGroup.GET("/:id", audienceHandler.Get)
-			audienceGroup.POST("/add-bulk", audienceHandler.AddAll)
+		}
+
+		chartGroup := appGroup.Group("/charts")
+		{
+			chartHandler := handlers.NewChartHandler(chartService)
+			chartGroup.GET("/", chartHandler.GetAll)
+			chartGroup.GET("/:id", chartHandler.Get)
 		}
 
 	}

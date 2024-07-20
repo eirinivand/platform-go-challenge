@@ -9,14 +9,15 @@ import (
 )
 
 type Favourite struct {
-	ID          primitive.ObjectID `json:"id"             bson:"_id,omitempty"`
+	ID          primitive.ObjectID `json:"id"         bson:"_id,omitempty"`
 	Title       string             `json:"title"`
 	Description string             `json:"description"`
-	FavouredOn  time.Time          `json:"favoured_on"`
-	AssetType   string             `json:"asset_type"  validate:"required,oneof=Chart Insight Audience"`
-	AssetId     primitive.ObjectID `json:"asset_id"    validate:"required"`
+	AssetType   string             `json:"asset_type"  bson:"asset_type" validate:"required,oneof=Chart Insight Audience"`
+	AssetId     primitive.ObjectID `json:"asset_id"    bson:"asset_id" validate:"required"`
 	Asset       AssetInterface     `json:"asset"`
 	Role        string             `json:"-"           validate:"required"`
+	CreatedOn   time.Time          `json:"created_on"  bson:"created_on"`
+	ModifiedOn  time.Time          `json:"modified_on" bson:"modified_on"`
 }
 
 // Make sure these match the types of assets that exist
@@ -68,22 +69,20 @@ func (f *Favourite) UnmarshalBSON(data []byte) error {
 	}
 	fmt.Println(raw)
 	var ok bool
-	f.AssetType, ok = raw["assettype"].(string)
-	fmt.Println(f.AssetType, ok)
+	f.AssetType, ok = raw["asset_type"].(string)
 	f.ID, ok = raw["_id"].(primitive.ObjectID)
-	fmt.Println(f.ID, ok)
 	f.Title, ok = raw["title"].(string)
-	fmt.Println(f.Title, ok)
-	f.AssetId, ok = raw["assetid"].(primitive.ObjectID)
-	fmt.Println(f.AssetId, ok)
+	f.AssetId, ok = raw["asset_id"].(primitive.ObjectID)
 	f.Role, ok = raw["role"].(string)
-	fmt.Println(f.Role, ok)
-	fOn, ok := raw["favouredon"].(primitive.DateTime)
-	f.FavouredOn = fOn.Time()
-	fmt.Println(f.FavouredOn, ok)
+	fOn, ok := raw["created_on"].(primitive.DateTime)
+	f.CreatedOn = fOn.Time()
+	fOn, ok = raw["modified_on"].(primitive.DateTime)
+	f.ModifiedOn = fOn.Time()
 	f.Description, _ = raw["description"].(string)
-	fmt.Println(f.Description, ok)
 	assetBytes, err := bson.Marshal(raw["asset"])
+	if !ok {
+		return errors.New("invalid favourite asset")
+	}
 	if err != nil {
 		return err
 	}

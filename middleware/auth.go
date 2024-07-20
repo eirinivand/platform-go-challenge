@@ -56,7 +56,7 @@ func IsAdmin() gin.HandlerFunc {
 
 		ctx.Set("role", claims.Role)
 
-		if !strings.HasPrefix(ADMIN_ROLE, claims.Role) {
+		if !strings.HasPrefix(claims.Role, ADMIN_ROLE) {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			ctx.Abort()
 			return

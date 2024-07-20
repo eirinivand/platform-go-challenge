@@ -35,19 +35,19 @@ func (s *favouriteService) GetAll(ctx context.Context, role string) ([]models.Fa
 		bson.D{{"$match", bson.D{{"role", role}}}},
 		bson.D{{"$lookup", bson.D{
 			{"from", "insights"},
-			{"localField", "assetid"},
+			{"localField", "asset_id"},
 			{"foreignField", "_id"},
 			{"as", "insight"},
 		}}},
 		bson.D{{"$lookup", bson.D{
 			{"from", "audiences"},
-			{"localField", "assetid"},
+			{"localField", "asset_id"},
 			{"foreignField", "_id"},
 			{"as", "audience"},
 		}}},
 		bson.D{{"$lookup", bson.D{
 			{"from", "charts"},
-			{"localField", "assetid"},
+			{"localField", "asset_id"},
 			{"foreignField", "_id"},
 			{"as", "chart"},
 		}}},
@@ -55,10 +55,11 @@ func (s *favouriteService) GetAll(ctx context.Context, role string) ([]models.Fa
 			{"_id", 1},
 			{"title", 1},
 			{"description", 1},
-			{"favouredon", 1},
-			{"assettype", 1},
-			{"assetid", 1},
+			{"asset_type", 1},
+			{"asset_id", 1},
 			{"role", 1},
+			{"created_on", 1},
+			{"modified_on", 1},
 			{"asset",
 				bson.D{{"$cond",
 					bson.D{{"if",
@@ -70,7 +71,8 @@ func (s *favouriteService) GetAll(ctx context.Context, role string) ([]models.Fa
 									bson.D{{"$ne", bson.A{"$chart", bson.A{}}}}},
 								{"then", bson.D{{"$first", "$chart"}}},
 								{"else", bson.D{{"$first", "$audience"}}},
-							}}}}}}}}}}}})
+							}}}}}}}}}}},
+		bson.D{{"$sort", bson.D{{"created_on", -1}}}}})
 	if err != nil {
 		return nil, err
 	}
@@ -123,10 +125,8 @@ func (s *favouriteService) GetByID(ctx context.Context, id string, role string) 
 }
 
 func (s *favouriteService) Create(ctx context.Context, m *models.Favourite) error {
-	if m.ID.IsZero() {
-		m.ID = primitive.NewObjectID()
-	}
-	m.FavouredOn = time.Now()
+	m.CreatedOn = time.Now()
+	m.ModifiedOn = time.Now()
 
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
@@ -141,6 +141,7 @@ func (s *favouriteService) Update(ctx context.Context, id string, m models.Favou
 	if err != nil {
 		return err
 	}
+	m.ModifiedOn = time.Now()
 
 	update := bson.D{
 		{Key: "$set", Value: m},

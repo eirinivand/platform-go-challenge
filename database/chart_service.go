@@ -5,9 +5,10 @@ import (
 	"errors"
 	"favourites/models"
 	"favourites/utils"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 	// "go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -15,6 +16,7 @@ type ChartService interface {
 	GetAll(ctx context.Context) ([]models.Chart, error)
 	GetByID(ctx context.Context, id string) (models.Chart, error)
 	Create(ctx context.Context, m *models.Chart) error
+	CreateAll(ctx context.Context, m []*models.Chart) error
 	Update(ctx context.Context, id string, m models.Chart) error
 	Delete(ctx context.Context, id string) error
 }
@@ -70,19 +72,32 @@ func (s *chartService) GetByID(ctx context.Context, id string) (models.Chart, er
 }
 
 func (s *chartService) Create(ctx context.Context, m *models.Chart) error {
-	if m.ID.IsZero() {
-		m.ID = primitive.NewObjectID()
-	}
+
+	m.CreatedOn = time.Now()
+	m.ModifiedOn = time.Now()
+
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
 		return err
 	}
 
-	// The following doesn't work if you have the `bson:"_id` on models.Chart.ID field,
-	// therefore we manually generate a new ID (look above).
-	// res, err := ...InsertOne
-	// objectID := res.InsertedID.(primitive.ObjectID)
-	// m.ID = objectID
+	return nil
+}
+
+func (s *chartService) CreateAll(ctx context.Context, charts []*models.Chart) error {
+
+	var chartsI []interface{}
+	for _, i := range charts {
+		i.CreatedOn = time.Now()
+		i.ModifiedOn = time.Now()
+
+		chartsI = append(chartsI, i)
+	}
+	_, err := s.C.InsertMany(context.TODO(), chartsI)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
 	return nil
 }
 

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 	// "go.mongodb.org/mongo-driver/mongo/options" // TODO
 )
 
@@ -17,9 +17,9 @@ type AudienceService interface {
 	GetAll(ctx context.Context) ([]models.Audience, error)
 	GetByID(ctx context.Context, id string) (models.Audience, error)
 	Create(ctx context.Context, m *models.Audience) error
+	CreateAll(ctx *gin.Context, result []*models.Audience) error
 	Update(ctx context.Context, id string, m models.Audience) error
 	Delete(ctx context.Context, id string) error
-	CreateAll(ctx *gin.Context, result []*models.Audience) error
 }
 
 type audienceService struct {
@@ -74,9 +74,8 @@ func (s *audienceService) GetByID(ctx context.Context, id string) (models.Audien
 }
 
 func (s *audienceService) Create(ctx context.Context, m *models.Audience) error {
-	if m.ID.IsZero() {
-		m.ID = primitive.NewObjectID()
-	}
+	m.CreatedOn = time.Now()
+	m.ModifiedOn = time.Now()
 	_, err := s.C.InsertOne(ctx, m)
 	if err != nil {
 		return err
@@ -89,6 +88,9 @@ func (s *audienceService) CreateAll(ctx *gin.Context, audiences []*models.Audien
 
 	var audiencesI []interface{}
 	for _, i := range audiences {
+		i.CreatedOn = time.Now()
+		i.ModifiedOn = time.Now()
+
 		audiencesI = append(audiencesI, i)
 	}
 	_, err := s.C.InsertMany(context.TODO(), audiencesI)
@@ -98,6 +100,7 @@ func (s *audienceService) CreateAll(ctx *gin.Context, audiences []*models.Audien
 	}
 	return nil
 }
+
 func (s *audienceService) Update(ctx context.Context, id string, m models.Audience) error {
 	filter, err := utils.MatchID(id)
 	if err != nil {

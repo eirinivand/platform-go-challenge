@@ -9,6 +9,10 @@ type Axis struct {
 	Title string `json:"title"`
 	Range Range  `json:"range" validate:"required"`
 }
+type Point struct {
+	X float64 `json:"x" validate:"required"`
+	Y float64 `json:"y" validate:"required"`
+}
 
 const (
 	PERCENTAGE Unit = "%"
